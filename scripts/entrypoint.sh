@@ -42,6 +42,6 @@ echo "####### local habitat supervisor is up... #######"
 
 cd /app/scripts
 ./provision.sh
-echo "####### Provisioning finsihed #######"
+echo "####### Provisioning finished #######"
 
 sleep infinity

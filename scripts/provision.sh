@@ -58,7 +58,7 @@ log_level="info"
 jobsrv_enabled = false
 
 [api]
-features_enabled = ""
+features_enabled = "upstream"
 
 [depot]
 jobsrv_enabled = false
@@ -81,6 +81,9 @@ key_id = "$MINIO_ACCESS_KEY"
 secret_key = "$MINIO_SECRET_KEY"
 endpoint = "$MINIO_ENDPOINT"
 bucket_name = "$MINIO_BUCKET"
+
+[upstream]
+endpoint = "https://bldr.habitat.sh"
 EOT
 
   mkdir -p /hab/svc/builder-api-proxy
@@ -96,12 +99,12 @@ authorize_url = "$OAUTH_AUTHORIZE_URL"
 redirect_url = "$OAUTH_REDIRECT_URL"
 
 [nginx]
-max_body_size = "2048m"
-proxy_send_timeout = 180
-proxy_read_timeout = 180
+max_body_size = "10240m"
+proxy_send_timeout = 3600
+proxy_read_timeout = 3600
 
 [http]
-keepalive_timeout = "180s"
+keepalive_timeout = "720s"
 
 [server]
 listen_tls = $APP_SSL_ENABLED
@@ -475,7 +478,7 @@ start_builder() {
   start_api_proxy
   start_originsrv
   start_sessionsrv
-  sleep 2
+  sleep 6
   generate_bldr_keys
   upload_ssl_certificate
 }
@@ -491,6 +494,11 @@ else
   sudo -E addgroup --system hab || true
 fi
 
-systemctl start hab-sup
-sleep 2
+if command -v systemctl > /dev/null; then
+  systemctl start hab-sup
+  sleep 6
+else
+  echo "hint: you need to call 'hab run' manually"
+fi
+
 start_builder

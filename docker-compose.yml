@@ -1,0 +1,52 @@
+version: '3'
+services:
+  keycloakdb:
+    image: postgres:latest
+    volumes:
+    - keycloakdb-vol:/app/data
+    environment:
+    - POSTGRES_DB=keycloak
+    - POSTGRES_USER=keycloak
+    - POSTGRES_PASSWORD=password
+    - PGDATA=/app/data
+    networks:
+      app_net:
+        ipv4_address: 172.18.18.11
+  keycloak:
+    image: jboss/keycloak
+    environment:
+    - DB_VENDOR=postgres
+    - DB_ADDR=keycloakdb
+    - DB_DATABASE=keycloak
+    - DB_USER=keycloak
+    - DB_PASSWORD=password
+    - KEYCLOAK_USER=admin
+    - KEYCLOAK_PASSWORD=admin
+    ports:
+    - 8090:8080
+    networks:
+      app_net:
+        ipv4_address: 172.18.18.12
+  habitat-depot:
+    build: .
+    restart: always
+    ports:
+    - "80:80"
+    volumes:
+    - habitat-vol:/hab
+    - ./my.bldr.env:/app/bldr.env
+    networks:
+      app_net:
+        ipv4_address: 172.18.18.13
+volumes:
+  habitat-vol:
+  keycloakdb-vol:
+networks:
+  app_net:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.18.18.0/24
